@@ -3,6 +3,8 @@
     <div id="nav">
       <router-link to="/">Home</router-link> |
       <router-link to="/glyphs">Glyphs</router-link> |
+      <router-link to="/glyphs-with-shaders">Glyphs with shaders</router-link> |
+      <router-link to="/glyphs-with-iba">Glyphs with IBA</router-link> |
       <router-link to="/test">Test</router-link> |
       <router-link to="/about">About</router-link>
     </div>
