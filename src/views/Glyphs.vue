@@ -1,119 +1,95 @@
 <template>
-  <div class="w-full h-full">
-    <Renderer ref="renderer" antialias resize="window" orbit-ctrl :alpha="true">
-      <Camera ref="camera" :position="{ x: -40, y: 100, z: 140 }" />
-      <Scene background="#333">
-        <AmbientLight color="#ffffff"></AmbientLight>
+  <Renderer ref="renderer" antialias resize="window" orbit-ctrl :alpha="true">
+    <Camera ref="camera" :position="{ y: -400, z: 100 }" />
+    <Scene background="#ffffff">
+      <AmbientLight color="#ffffff"></AmbientLight>
+      <DirectionalLight
+        color="#ffffff"
+        :intensity="0.5"
+        :position="{ x: -40, y: 100, z: 140 }"
+      ></DirectionalLight>
 
-        <InstancedMesh ref="imesh" :count="1342">
-          <ConeGeometry :radius="0.5" :height="2" :radialSegments="4" />
-          <ShaderMaterial
-            :fragmentShader="fragmentShader"
-            :vertexShader="vertexShader"
-            :uniforms="uniforms"
-          />
-        </InstancedMesh>
-      </Scene>
-    </Renderer>
-  </div>
+      <InstancedMesh ref="imesh" :count="NUM_INSTANCES">
+        <ConeGeometry :radius="SIZE / 2" :height="2" :radialSegments="4" />
+        <StandardMaterial />
+      </InstancedMesh>
+    </Scene>
+  </Renderer>
 </template>
 
 <script>
-import {
-  Object3D,
-  Vector3,
-  Color,
-  InstancedBufferAttribute,
-  Uniform,
-} from 'three';
+import { Object3D, Color, Vector3 } from 'three';
 import chroma from 'chroma-js';
 
 import { CSVToArray } from '../lib/csv';
 import { readDataFromFile } from '../lib/read-from-file';
+import { testData } from '../lib/test-data';
 
 export default {
   data: () => ({
-    parsedData: [],
-    fragmentShader: `
-varying vec3 vColor;
-
-  void main(){
-    vec3 color = vColor;
-    gl_FragColor = vec4(color, 1.);
-  }
-`,
-    vertexShader: `
-attribute vec3 aColor;
-varying vec3 vColor;
-
-  void main(){
-    vColor = aColor;
-  }
-`,
-    uniforms: { uScale: new Uniform(1) },
+    c: 0,
+    sign: 1,
   }),
+  setup() {
+    const SIZE = 1.6,
+      NX = 50,
+      NY = 50,
+      NZ = 1,
+      PADDING = 2;
+    const SIZEP = SIZE + PADDING;
+    const W = NX * SIZEP - PADDING;
+    const H = NY * SIZEP - PADDING;
+    const D = NZ * SIZEP - PADDING;
+
+    return {
+      SIZE,
+      NX,
+      NY,
+      NZ,
+      PADDING,
+      SIZEP,
+      W,
+      H,
+      D,
+      NUM_INSTANCES: NX * NY * NZ,
+    };
+  },
   mounted() {
     this.renderer = this.$refs.renderer;
     this.size = this.renderer.three.size;
     this.pointer = this.renderer.three.pointer;
     this.imesh = this.$refs.imesh.mesh;
-    this.geometry = this.$refs.imesh.geometry;
-    this.camera = this.$refs.camera.camera;
 
-    console.log(this.geometry);
     this.colors = chroma
-      .scale(['yellow', 'navy'])
+      .scale(['blue', 'red'])
       .padding([0.05, 0])
       .mode('lab')
       .correctLightness()
-      .colors(1342);
-
-    const aColor = [];
-    this.colors.forEach((color) => {
-      const c = new Color(chroma(color).css());
-      aColor.push(c.r, c.g, c.b);
-    });
-
-    const typedArr = new Float32Array(aColor);
-
-    console.log(typedArr);
-
-    this.geometry.setAttribute(
-      'aColor',
-      new InstancedBufferAttribute(typedArr, 3, false),
-    );
+      .colors(64);
 
     this.dummy = new Object3D();
 
-    readDataFromFile('mag_every_100000th_line.csv')
-      .then((response) => response.text())
-      .then((response) => {
-        this.parsedData = CSVToArray(response, ',');
-        this.updateInstanceMatrix();
-        // this.renderer.onBeforeRender(this.updateInstanceMatrix);
-      });
+    this.updateInstanceMatrix();
   },
   methods: {
     updateInstanceMatrix() {
-      let min = 512,
-        max = -512;
-      for (let i = 0; i < this.parsedData.length; i += 1) {
-        const vector = new Vector3(
-          this.parsedData[i][3],
-          this.parsedData[i][4],
-          this.parsedData[i][5],
-        );
+      let index = 0,
+        min = 1000,
+        max = -1000;
+      const parsedData = CSVToArray(testData);
+      for (let i = 0; i < parsedData.length; i += 1) {
+        const x = 30 * parsedData[i][0];
+        const y = 30 * parsedData[i][1];
+        const z = 30 * parsedData[i][2];
+        const u = parsedData[i][3];
+        const v = parsedData[i][4];
+        const w = parsedData[i][5];
 
-        const scale = Math.pow(vector.length(), 2);
-        if (scale < min) min = scale;
-        if (scale > max) max = scale;
-        this.dummy.scale.set(scale, scale, scale);
+        const vector = new Vector3(u, v, w);
+        const len = Math.pow(vector.length(), 3);
 
-        this.dummy.position.set(
-          10 * this.parsedData[i][0],
-          10 * this.parsedData[i][1],
-          10 * this.parsedData[i][2],
-        );
+        this.dummy.scale.set(len, len, len);
+        this.dummy.position.set(x, y, z);
         this.dummy.rotation.set(
           vector.angleTo(new Vector3(1, 0, 0)) * (180 / Math.PI),
           vector.angleTo(new Vector3(0, 1, 0)) * (180 / Math.PI),
@@ -121,10 +97,19 @@ varying vec3 vColor;
         );
 
         this.dummy.updateMatrix();
-        this.imesh.setMatrixAt(i, this.dummy.matrix);
+        this.imesh.setMatrixAt(index, this.dummy.matrix);
+        const colorIndex = Math.round(Math.abs(10 * len)) || 0;
+        if (colorIndex > max) max = colorIndex;
+        if (colorIndex < min) min = colorIndex;
+        this.imesh.setColorAt(
+          index,
+          new Color(chroma(this.colors[colorIndex]).css()),
+        );
+        index++;
       }
+      console.log('min: ', min, '\nmax: ', max);
       this.imesh.instanceMatrix.needsUpdate = true;
-      // this.imesh.instanceColor.needsUpdate = true;
+      this.imesh.instanceColor.needsUpdate = true;
     },
   },
 };

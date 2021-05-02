@@ -36,17 +36,16 @@ class CSVReader {
           const u = parsedLine[3];
           const v = parsedLine[4];
           const w = parsedLine[5];
-          const d = 
           this.data.push([x, y, z, u, v, w]);
 
           if (this.lineNumber % this.batchSize === 0) {
             callback(this.data);
           }
         })
-        .on('error', function (e) {
+        .on('error', function(e) {
           console.log('Error while reading file.', e);
         })
-        .on('end', function () {
+        .on('end', function() {
           console.log('Read entirefile.');
         }),
     );
