@@ -61,8 +61,8 @@ export default {
       .colors(7000);
 
     this.dummy = new Object3D();
-    // this.updateInstanceMatrix();
-    this.renderer.onBeforeRender(this.updateInstanceMatrix);
+    this.updateInstanceMatrix();
+    // this.renderer.onBeforeRender(this.updateInstanceMatrix);
   },
   methods: {
     updateInstanceMatrix() {
