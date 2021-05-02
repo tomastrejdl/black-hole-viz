@@ -4,16 +4,6 @@
       <Camera ref="camera" :position="{ x: -40, y: 100, z: 140 }" />
       <Scene background="#333">
         <AmbientLight color="#ffffff"></AmbientLight>
-        <!-- <DirectionalLight
-          color="#ffffff"
-          :intensity="10"
-          :position="{ x: -40, y: 100, z: 140 }"
-        ></DirectionalLight>
-        <DirectionalLight
-          color="#ffffff"
-          :intensity="10"
-          :position="{ x: 40, y: 100, z: 140 }"
-        ></DirectionalLight> -->
 
         <InstancedMesh ref="imesh" :count="1342">
           <ConeGeometry :radius="0.5" :height="2" :radialSegments="4" />
@@ -36,7 +26,6 @@ import {
   InstancedBufferAttribute,
   Uniform,
 } from 'three';
-import dat from 'dat.gui';
 import chroma from 'chroma-js';
 
 import { CSVToArray } from '../lib/csv';
@@ -94,32 +83,6 @@ varying vec3 vColor;
       new InstancedBufferAttribute(typedArr, 3, false),
     );
 
-    // Options to be added to the GUI
-    var options = {
-      reset: () => {
-        this.camera.position.x = -40;
-        this.camera.position.y = 100;
-        this.camera.position.z = 140;
-      },
-    };
-
-    // DAT.GUI Related Stuff
-    // var gui = new dat.GUI();
-
-    // var cam = gui.addFolder('Camera');
-    // cam
-    //   .add(this.camera.position, 'x', -300, 300)
-    //   .onChange((val) => (this.camera.position.x = val));
-    // cam
-    //   .add(this.camera.position, 'y', -300, 300)
-    //   .onChange((val) => (this.camera.position.y = val));
-    // cam
-    //   .add(this.camera.position, 'z', -300, 300)
-    //   .onChange((val) => (this.camera.position.z = val));
-    // cam.open();
-
-    // gui.add(options, 'reset');
-
     this.dummy = new Object3D();
 
     readDataFromFile('mag_every_100000th_line.csv')
@@ -159,26 +122,7 @@ varying vec3 vColor;
 
         this.dummy.updateMatrix();
         this.imesh.setMatrixAt(i, this.dummy.matrix);
-        // console.log(
-        //   'at: ',
-        //   i,
-        //   new Color(
-        //     chroma(
-        //       this.colors[Math.round(Math.pow(this.parsedData[i][2] || 0, 2))],
-        //     ).css(),
-        //   ),
-        //   chroma(
-        //     this.colors[Math.round(Math.pow(this.parsedData[i][2] || 0, 2))],
-        //   ).css(),
-        //   this.colors[Math.round(Math.pow(this.parsedData[i][2], 2))],
-        //   this.parsedData[i][2],
-        // );
-        // this.imesh.setColorAt(i, new Color('rgb(1, 128, 255)'));
-        // const color = new Color();
-        // this.imesh.getColorAt(i, color);
-        // console.log(color.r, color.g, color.b);
       }
-      // console.log('min: ', min, '\nmax: ', max);
       this.imesh.instanceMatrix.needsUpdate = true;
       // this.imesh.instanceColor.needsUpdate = true;
     },
