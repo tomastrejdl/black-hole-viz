@@ -1,16 +1,27 @@
 <template>
-  <Renderer ref="renderer" antialias resize="window" orbit-ctrl :alpha="true">
-    <Camera ref="camera" :position="{ x: -40, y: 100, z: 140 }" />
-    <Scene background="#ffffff">
-      <AmbientLight color="#ffffff"></AmbientLight>
-      <PointLight color="#ffffff" :position="{ y: 50, z: 0 }"></PointLight>
+  <div class="w-full h-full">
+    <Renderer ref="renderer" antialias resize="window" orbit-ctrl :alpha="true">
+      <Camera ref="camera" :position="{ x: -40, y: 100, z: 140 }" />
+      <Scene background="#ffffff">
+        <AmbientLight color="#ffffff"></AmbientLight>
+        <DirectionalLight
+          color="#ffffff"
+          :intensity="10"
+          :position="{ x: -40, y: 100, z: 140 }"
+        ></DirectionalLight>
+        <DirectionalLight
+          color="#ffffff"
+          :intensity="10"
+          :position="{ x: 40, y: 100, z: 140 }"
+        ></DirectionalLight>
 
-      <InstancedMesh ref="imesh" :count="2000">
-        <ConeGeometry :radius="0.5" :height="2" :radialSegments="4" />
-        <StandardMaterial vertex-colors />
-      </InstancedMesh>
-    </Scene>
-  </Renderer>
+        <InstancedMesh ref="imesh" :count="2000">
+          <ConeGeometry :radius="0.5" :height="2" :radialSegments="4" />
+          <StandardMaterial vertex-colors />
+        </InstancedMesh>
+      </Scene>
+    </Renderer>
+  </div>
 </template>
 
 <script>
