@@ -8,7 +8,7 @@
       <!-- <PointLight color="#ffffff" :position="{ y: 0, z: 0 }"></PointLight> -->
 
       <InstancedMesh ref="imesh" :count="NUM_INSTANCES">
-        <SphereGeometry :size="SIZE" />
+        <ConeGeometry :radius="SIZE / 2" :height="2" :radialSegments="4" />
         <StandardMaterial />
       </InstancedMesh>
     </Scene>
@@ -101,27 +101,30 @@ export default {
 
             // z = z - (this.c / 10) * z;
 
+            this.dummy.scale.set(1, 1, 1);
             this.dummy.position.set(x, y, z);
+            this.dummy.rotation.set(x, y, z);
             this.dummy.updateMatrix();
             this.imesh.setMatrixAt(index, this.dummy.matrix);
             this.imesh.setColorAt(
               index,
               new Color(chroma(this.colors[Math.round(z * 100)]).css()),
             );
+            const color = new Color();
+            this.imesh.getColorAt(index, color);
+            // console.log(color.r, color.g, color.b);
             index++;
           }
         }
       }
       this.imesh.instanceMatrix.needsUpdate = true;
+      this.imesh.instanceColor.needsUpdate = true;
     },
   },
 };
 </script>
 
-<style>
-body {
-  margin: 0;
-}
+<style scoped>
 canvas {
   display: block;
 }

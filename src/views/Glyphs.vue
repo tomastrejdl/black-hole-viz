@@ -2,9 +2,9 @@
   <div class="w-full h-full">
     <Renderer ref="renderer" antialias resize="window" orbit-ctrl :alpha="true">
       <Camera ref="camera" :position="{ x: -40, y: 100, z: 140 }" />
-      <Scene background="#ffffff">
+      <Scene background="#333">
         <AmbientLight color="#ffffff"></AmbientLight>
-        <DirectionalLight
+        <!-- <DirectionalLight
           color="#ffffff"
           :intensity="10"
           :position="{ x: -40, y: 100, z: 140 }"
@@ -13,11 +13,15 @@
           color="#ffffff"
           :intensity="10"
           :position="{ x: 40, y: 100, z: 140 }"
-        ></DirectionalLight>
+        ></DirectionalLight> -->
 
-        <InstancedMesh ref="imesh" :count="2000">
+        <InstancedMesh ref="imesh" :count="1342">
           <ConeGeometry :radius="0.5" :height="2" :radialSegments="4" />
-          <StandardMaterial vertex-colors />
+          <ShaderMaterial
+            :fragmentShader="fragmentShader"
+            :vertexShader="vertexShader"
+            :uniforms="uniforms"
+          />
         </InstancedMesh>
       </Scene>
     </Renderer>
@@ -25,7 +29,13 @@
 </template>
 
 <script>
-import { Object3D, Vector3, Color } from 'three';
+import {
+  Object3D,
+  Vector3,
+  Color,
+  InstancedBufferAttribute,
+  Uniform,
+} from 'three';
 import dat from 'dat.gui';
 import chroma from 'chroma-js';
 
@@ -35,23 +45,54 @@ import { readDataFromFile } from '../lib/read-from-file';
 export default {
   data: () => ({
     parsedData: [],
-    colors: [],
+    fragmentShader: `
+varying vec3 vColor;
+
+  void main(){
+    vec3 color = vColor;
+    gl_FragColor = vec4(color, 1.);
+  }
+`,
+    vertexShader: `
+attribute vec3 aColor;
+varying vec3 vColor;
+
+  void main(){
+    vColor = aColor;
+  }
+`,
+    uniforms: { uScale: new Uniform(1) },
   }),
   mounted() {
     this.renderer = this.$refs.renderer;
     this.size = this.renderer.three.size;
     this.pointer = this.renderer.three.pointer;
     this.imesh = this.$refs.imesh.mesh;
+    this.geometry = this.$refs.imesh.geometry;
     this.camera = this.$refs.camera.camera;
 
+    console.log(this.geometry);
     this.colors = chroma
-      .scale(['blue', 'red'])
-      // .padding([0.05, 0])
-      // .mode('lab')
-      // .correctLightness()
-      .colors(100);
+      .scale(['yellow', 'navy'])
+      .padding([0.05, 0])
+      .mode('lab')
+      .correctLightness()
+      .colors(1342);
 
-    console.log(this.colors);
+    const aColor = [];
+    this.colors.forEach((color) => {
+      const c = new Color(chroma(color).css());
+      aColor.push(c.r, c.g, c.b);
+    });
+
+    const typedArr = new Float32Array(aColor);
+
+    console.log(typedArr);
+
+    this.geometry.setAttribute(
+      'aColor',
+      new InstancedBufferAttribute(typedArr, 3, false),
+    );
 
     // Options to be added to the GUI
     var options = {
@@ -86,9 +127,8 @@ export default {
       .then((response) => {
         this.parsedData = CSVToArray(response, ',');
         this.updateInstanceMatrix();
+        // this.renderer.onBeforeRender(this.updateInstanceMatrix);
       });
-
-    // this.renderer.onBeforeRender(this.updateInstanceMatrix);
   },
   methods: {
     updateInstanceMatrix() {
@@ -100,14 +140,6 @@ export default {
           this.parsedData[i][4],
           this.parsedData[i][5],
         );
-
-        if (i == 0) {
-          console.log(Math.round(vector.length()));
-
-          console.log('angle to x: ', vector.angleTo(new Vector3(1, 0, 0)));
-          console.log('angle to y: ', vector.angleTo(new Vector3(0, 1, 0)));
-          console.log('angle to z: ', vector.angleTo(new Vector3(0, 0, 1)));
-        }
 
         const scale = Math.pow(vector.length(), 2);
         if (scale < min) min = scale;
@@ -124,27 +156,37 @@ export default {
           vector.angleTo(new Vector3(0, 1, 0)) * (180 / Math.PI),
           vector.angleTo(new Vector3(0, 0, 1)) * (180 / Math.PI),
         );
+
         this.dummy.updateMatrix();
         this.imesh.setMatrixAt(i, this.dummy.matrix);
-
-        const colorIndex = Math.round(10 * vector.length()) || 0;
-        this.imesh.setColorAt(
-          i,
-          new Color(chroma(this.colors[colorIndex]).css()),
-        );
+        // console.log(
+        //   'at: ',
+        //   i,
+        //   new Color(
+        //     chroma(
+        //       this.colors[Math.round(Math.pow(this.parsedData[i][2] || 0, 2))],
+        //     ).css(),
+        //   ),
+        //   chroma(
+        //     this.colors[Math.round(Math.pow(this.parsedData[i][2] || 0, 2))],
+        //   ).css(),
+        //   this.colors[Math.round(Math.pow(this.parsedData[i][2], 2))],
+        //   this.parsedData[i][2],
+        // );
+        // this.imesh.setColorAt(i, new Color('rgb(1, 128, 255)'));
+        // const color = new Color();
+        // this.imesh.getColorAt(i, color);
+        // console.log(color.r, color.g, color.b);
       }
-      console.log('min: ', min, '\nmax: ', max);
+      // console.log('min: ', min, '\nmax: ', max);
       this.imesh.instanceMatrix.needsUpdate = true;
-      this.imesh.instanceColor.needsUpdate = true;
+      // this.imesh.instanceColor.needsUpdate = true;
     },
   },
 };
 </script>
 
-<style>
-body {
-  margin: 0;
-}
+<style scoped>
 canvas {
   display: block;
 }
