@@ -78,9 +78,9 @@ export default {
         max = -1000;
       const parsedData = CSVToArray(testData);
       for (let i = 0; i < parsedData.length; i += 1) {
-        const x = 30 * parsedData[i][0];
-        const y = 30 * parsedData[i][1];
-        const z = 30 * parsedData[i][2];
+        const x = 20 * parsedData[i][0];
+        const y = 20 * parsedData[i][1];
+        const z = 20 * parsedData[i][2];
         const u = parsedData[i][3];
         const v = parsedData[i][4];
         const w = parsedData[i][5];
