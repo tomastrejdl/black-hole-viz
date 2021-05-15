@@ -1,13 +1,13 @@
 <template>
   <div>
-    <div class="sticky top-0 w-full h-16 bg-gray-100 flex flex-wrap justify-center items-center gap-x-16 gap-y-2">
-      <h1>
+    <div class="absolute top-4 left-4 bg-gray-100 rounded-lg px-8 py-8">
+      <h1 class="flex flex-col text-left">
         <span class="text-xl font-bold">Vizualization of magnetic field near a black hole</span>
-        <span class="ml-2 text-xs">by Tomáš Trejdl</span>
+        <span class="text-sm">by Tomáš Trejdl</span>
       </h1>
     </div>
     <Renderer ref="renderer" antialias resize="window" orbit-ctrl :alpha="true">
-      <Camera ref="camera" :position="{ y: -400, z: 100 }" />
+      <Camera ref="camera" :position="{ x: 0, y: -200, z: 200 }" />
       <Scene background="#ffffff">
         <AmbientLight color="#ffffff"></AmbientLight>
         <DirectionalLight
@@ -20,30 +20,39 @@
           <ConeGeometry :radius="coneRadius" :height="coneHeight" :radialSegments="6" />
           <StandardMaterial />
         </InstancedMesh>
+
+
+        <Sphere v-if="showNullPoint" :radius="2" :position="{
+          x: coordinateMultiplier * nullPoint.x,
+          y: coordinateMultiplier * nullPoint.y,
+          z: coordinateMultiplier * nullPoint.z
+        }">
+          <StandardMaterial color="#DC2626"/>
+        </Sphere>
       </Scene>
     </Renderer>
-    <div class="sticky bottom-0 w-full h-24 bg-gray-100 flex flex-wrap justify-center items-center gap-x-16 gap-y-2">
+    <div class="absolute bottom-4 left-4 mr-auto w-min px-8 py-8 bg-gray-100 rounded-lg flex flex-col gap-y-2">
       <div class="flex items-center gap-4">
-        <label for="cone-radius">Cone Radius</label>
-        <input name="cone-radius" v-model.number="coneRadius" type="range" min="0.1" max="2" step="0.1" />
+        <label for="cone-radius" class="w-32 text-left">Cone Radius</label>
+        <input name="cone-radius" v-model.number="coneRadius" type="range" min="0.1" max="2" step="0.1"  class="w-32" />
         <div class="w-4">{{coneRadius}}</div>
       </div>
 
       <div class="flex items-center gap-4">
-        <label for="cone-height">Cone Height</label>
-        <input name="cone-height" v-model.number="coneHeight" type="range" min="1" max="10" step="1" />
+        <label for="cone-height" class="w-32 text-left">Cone Height</label>
+        <input name="cone-height" v-model.number="coneHeight" type="range" min="1" max="10" step="0.5"  class="w-32" />
         <div class="w-4">{{coneHeight}}</div>
       </div>
 
       <div class="flex items-center gap-4">
-        <label for="density">Density</label>
-        <input name="density" v-model.number="density" type="range" min="1" max="10" step="1" />
+        <label for="density" class="w-32 text-left">Density</label>
+        <input name="density" v-model.number="density" type="range" min="1" max="10" step="1" class="w-32" />
         <div class="w-4">{{density}}</div>
       </div>
 
-      <div class="px-8 flex items-center gap-4">
-        <label for="filter-axis">Filter Axis</label>
-        <select name="filter-axis" v-model.number="filterAxis">
+      <div class="flex items-center gap-4">
+        <label for="filter-axis" class="w-32 text-left">Filter Axis</label>
+        <select name="filter-axis" v-model.number="filterAxis" class="w-32">
           <option value="0">X</option>
           <option value="1">Y</option>
           <option value="2">Z</option>
@@ -51,15 +60,32 @@
       </div>
 
       <div class="flex items-center gap-4">
-        <label for="filter-value">Filter Value</label>
-        <input name="filter-value" v-model.number="filterValue" type="range" min="-3" max="3" step="0.1" />
+        <label for="filter-value" class="w-32 text-left">Filter Value</label>
+        <input name="filter-value" v-model.number="filterValue" type="range" min="-3" max="3" step="0.1" class="w-32" />
         <div class="w-4">{{filterValue}}</div>
       </div>
 
       <div class="flex items-center gap-4">
-        <label for="filter-width">Filter Width</label>
-        <input name="filter-width" v-model.number="filterWidth" type="range" min="0" max="6" step="0.1" />
+        <label for="filter-width" class="w-32 text-left">Filter Width</label>
+        <input name="filter-width" v-model.number="filterWidth" type="range" min="0" max="6" step="0.1"  class="w-32" />
         <div class="w-4">{{filterWidth}}</div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <SwitchGroup>
+          <SwitchLabel class="mr-4">Show null point</SwitchLabel>
+          <Switch
+            v-model="showNullPoint"
+            :class="showNullPoint ? 'bg-gray-300' : 'bg-white'"
+            class="relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <span class="sr-only">Show null point</span>
+            <span
+              :class="showNullPoint ? 'translate-x-6' : 'translate-x-1'"
+              class="pointer-events-none inline-block w-4 h-4 transform bg-blue-500 rounded-full ring-0 transition ease-in-out duration-200"
+            />
+          </Switch>
+        </SwitchGroup>
       </div>
 
       <button @click="resetFilters()" class="bg-gray-300 px-2 py-1 rounded hover:bg-gray-400">Reset filters</button>
@@ -75,16 +101,28 @@ import { CSVToArray } from '../lib/csv';
 import { readDataFromFile } from '../lib/read-from-file';
 import { testData } from '../lib/test-data-uniform-random';
 
+import { ref } from 'vue'
+import { Switch } from '@headlessui/vue'
+
 export default {
+  components: { Switch },
   data: () => ({
     c: 0,
     sign: 1,
     coneRadius: 0.8,
-    coneHeight: 2.4,
+    coneHeight: 2.5,
     density: 5,
     filterAxis: 2,
     filterValue: 0,
     filterWidth: 6,
+
+    coordinateMultiplier: 20,
+    showNullPoint: true,
+    nullPoint: {
+      x: 0.723,
+      y: -1.117,
+      z: -0.97
+    }
   }),
   setup() {
     const SIZE = 1.6,
@@ -117,7 +155,7 @@ export default {
     this.imesh = this.$refs.imesh.mesh;
 
     this.colors = chroma
-      .scale(['blue', 'red'])
+      .scale(['#EFDE1D', '#209A89', '#430254'])
       .padding([0.01, 0.01])
       .mode('lab')
       .correctLightness()
@@ -131,10 +169,12 @@ export default {
   },
   methods: {
     resetFilters() {
-      this.density= 5;
-      this.filterAxis= 2;
-      this.filterValue= 0;
-      this.filterWidth= 6;
+      this.coneRadius = 0.8;
+      this.coneHeight = 2.5;
+      this.density = 5;
+      this.filterAxis = 2;
+      this.filterValue = 0;
+      this.filterWidth = 6;
     },
     updateInstanceMatrix() {
       let index = 0,
@@ -161,8 +201,8 @@ export default {
           }
           this.dummy.position.set(x, y, z);
           this.dummy.rotation.set(
-            vector.angleTo(new Vector3(1, 0, 0)) * (180 / Math.PI),
             vector.angleTo(new Vector3(0, 1, 0)) * (180 / Math.PI),
+            vector.angleTo(new Vector3(1, 0, 0)) * (180 / Math.PI),
             vector.angleTo(new Vector3(0, 0, 1)) * (180 / Math.PI),
           );
           
