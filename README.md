@@ -6,13 +6,33 @@ FEL ČVUT 2021
 
 Author: Tomáš Trejdl
 
-## Build with
+Available at: https://black-hole-viz.netlify.app/
+
+## Built with
 
 - [TroisJS](https://troisjs.github.io/)
 - [Vue.js](https://vuejs.org/)
 - [Vite](https://vitejs.dev/)
 - [three.js](https://threejs.org/)
 - [TailwindCSS](https://tailwindcss.com/)
+
+## How to run
+
+### Prerequisites 
+
+- [Node.js](https://nodejs.org/en/)
+
+### Install dependencies
+
+`npm install`
+
+### Run the application locally
+
+`npm run serve`
+
+### Build for production
+
+`npm run build`
 
 ## Description of Data (in Czech)
 
