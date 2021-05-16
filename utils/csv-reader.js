@@ -25,10 +25,6 @@ class CSVReader {
         .mapSync((line) => {
           ++this.lineNumber;
 
-          //   parse(line, this.parseOptions, (err, d) => {
-          //     this.data.push(d[0]);
-          //   });
-
           const parsedLine = CSVToArray(line);
           const x = parsedLine[0];
           const y = parsedLine[1];

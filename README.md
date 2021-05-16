@@ -14,10 +14,6 @@ Author: Tomáš Trejdl
 - [three.js](https://threejs.org/)
 - [TailwindCSS](https://tailwindcss.com/)
 
-## Data
-
-Data in CSV format are located in `/data` folder and are managed using [git LFS](https://git-lfs.github.com/).
-
 ## Description of Data (in Czech)
 
 Jsou k dispozici 3 datasety

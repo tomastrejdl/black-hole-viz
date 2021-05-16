@@ -2,21 +2,13 @@
 const fs = require('fs'),
     es = require('event-stream'),
     iconv = require('iconv-lite'),
-    CSVToArray = require('./csv-to-array'),
     random = require('random');
-
 
 let u = random.uniformInt(0, 512*512*512);
 
 let arr = []
 for (let i = 0; i < 10000; i++) arr.push(u())
-
-console.log(arr.sort((a, b) => a - b))
-
-fs.createWriteStream('./arr').write(arr.sort((a, b) => a - b).toString());
-
 const distribution = arr.sort((a, b) => a - b)
-
 
 class CSVReader {
   constructor(filename, batchSize, columns) {
@@ -59,9 +51,7 @@ class CSVReader {
   }
 }
 
-
-
-const reader = new CSVReader('../mag1_512_512_512.csv');
+const reader = new CSVReader('../mag2_512_512_512.csv');
 
 reader.read((data) => {
   console.log(data);
