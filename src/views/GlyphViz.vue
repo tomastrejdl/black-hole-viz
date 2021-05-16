@@ -25,7 +25,12 @@
         </Sphere>
       </Scene>
     </Renderer>
-    <div class="absolute bottom-4 left-4 mr-auto w-min px-10 py-8 bg-gray-100 rounded-lg flex flex-col gap-y-2">
+
+    <div v-if="showFilters" class="absolute bottom-0 sm:bottom-4 left-0 sm:left-4 mr-auto w-full sm:w-min px-4 sm:px-10 py-4 sm:py-8 bg-opacity-50 backdrop-filter backdrop-blur-sm sm:bg-opacity-100 bg-gray-100 sm:rounded-lg flex flex-col gap-y-4 sm:gap-y-2 z-20 transition-transform ease-in-out duration-200">
+      <button @click="showFilters = false" class="sm:hidden mx-auto px-6 py-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+      </button>
+
       <div class="flex items-center gap-4">
         <label for="cone-radius" class="w-32 text-left">Cone Radius</label>
         <input name="cone-radius" v-model.number="coneRadius" type="range" min="0.1" max="2" step="0.1"  class="w-32" />
@@ -90,6 +95,10 @@
 
       <button @click="resetFilters()" class="bg-gray-300 px-2 py-1 rounded hover:bg-gray-400">Reset filters</button>
     </div>
+
+    <button v-if="!showFilters" @click="showFilters = true" class="sm:hidden absolute bottom-4 left-4 mx-auto px-6 py-2 bg-gray-200 rounded-lg">
+      Show filters
+    </button>
   </div>
 </template>
 
@@ -130,7 +139,16 @@ export default {
 
     coordinateMultiplier: 20,
     showNullPoint: true,
+
+    showFilters: false
   }),
+  created() {
+    this.resizeHandler()
+    window.addEventListener('resize', this.resizeHandler);
+  },
+  unmounted() {
+    window.removeEventListener('resize', this.resizeHandler);
+  },
   setup() {
     const SIZE = 1.6,
       NX = 100,
@@ -175,6 +193,9 @@ export default {
     this.renderer.onBeforeRender(this.updateInstanceMatrix);
   },
   methods: {
+    resizeHandler() {
+      this.showFilters = window.innerWidth >= 640;
+    },
     resetFilters() {
       this.coneRadius = 0.8;
       this.coneHeight = 2.5;
