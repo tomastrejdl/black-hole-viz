@@ -10,6 +10,7 @@
   "main": "main.js",
   "scripts": {
     "serve": "vite",
+    "serve:host": "vite --host",
     "build": "vite build",
     "preview": "vite preview"
   },
