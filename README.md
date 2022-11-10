@@ -8,6 +8,12 @@ Author: Tomáš Trejdl
 
 Available at: https://black-hole-viz.netlify.app/
 
+![Screenshot 2022-11-10 at 21 53 35](https://user-images.githubusercontent.com/19684291/201204129-4cdb2e3a-4424-4467-9099-efc028fe639d.png)
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/19684291/201205162-d8190557-a560-4b38-bf31-4b9e88aa3e54.gif" />
+</p>
+
 ## Built with
 
 - [TroisJS](https://troisjs.github.io/)
